@@ -1,0 +1,24 @@
+{
+  "name": "transact_automation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:login": "npx playwright test ./tests/login/smokeLogin.spec.js",
+    "allure:generate": "npx allure generate allure-results -o allure-report --clean",
+    "allure:open": "npx allure open allure-report",
+    "allure:report": "npm run allure:generate && npm run allure:open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "allure-commandline": "^2.43.0",
+    "allure-js-commons": "^3.11.0",
+    "allure-playwright": "^3.11.0",
+    "dotenv": "^17.4.2"
+  }
+}
