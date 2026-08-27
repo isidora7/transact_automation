@@ -7,6 +7,7 @@ class LoginPage extends BasePage {
         this.emailInput = this.byLabel('Email');
         this.passwordInput = this.byLabel('Password');
         this.loginButton = this.byRole('button', { name: 'Sign in' });
+        this.errorMessage = this.$('.login-error');
     }
 
     async goto() {
