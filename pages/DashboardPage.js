@@ -9,6 +9,8 @@ class DashboardPage extends BasePage {
         this.dashboardNavLink = this.sidebar.getByRole('link', { name: 'Dashboard', exact: true });
         this.organisationNavLink = this.sidebar.getByRole('link', { name: 'Organisation' });
         this.userMenuButton = this.byRole('button').filter({ hasText: '@' });
+        this.profileMenuItem = this.byRole('menuitem', { name: 'Profile & settings' });
+        this.signOutMenuItem = this.byRole('menuitem', { name: 'Sign out' });
     }
 
     async goto() {

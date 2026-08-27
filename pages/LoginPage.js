@@ -14,5 +14,11 @@ class LoginPage extends BasePage {
         await super.goto('/login');
     }
 
+    async login(email, password) {
+        await this.emailInput.fill(email);
+        await this.passwordInput.fill(password);
+        await this.loginButton.click();
+    }
+
 }
 module.exports = { LoginPage };
