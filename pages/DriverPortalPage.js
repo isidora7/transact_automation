@@ -42,5 +42,29 @@ class DriverPortalPage extends BasePage {
     addCostButton(index) {
         return this.stop(index).getByRole('button', { name: /Add cost for/ });
     }
+
+    // AddCostWizard renders as a Radix Dialog on desktop viewports (a bottom
+    // sheet on mobile, per ResponsiveModal) — same data-slot scoping trick as
+    // CreateLoadPage, needed because "Next"/"Submit" are aria-labelled with
+    // full sentences rather than their visible short text.
+    get addCostDialog() {
+        return this.$('[data-slot="dialog-content"]');
+    }
+
+    costTypeButton(label) {
+        return this.addCostDialog.getByRole('button', { name: `Choose ${label}` });
+    }
+
+    get addCostNoteInput() {
+        return this.addCostDialog.getByLabel('Note');
+    }
+
+    get addCostContinueButton() {
+        return this.addCostDialog.getByRole('button', { name: 'Continue to the note and proof step' });
+    }
+
+    addCostSubmitButton(facilityName) {
+        return this.addCostDialog.getByRole('button', { name: `Submit cost for ${facilityName}` });
+    }
 }
 module.exports = { DriverPortalPage };
