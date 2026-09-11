@@ -2,6 +2,7 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../pages/LoginPage';
 import { DashboardPage } from '../../pages/DashboardPage';
+import { ADMIN_STORAGE_STATE } from '../authStorage';
 
 test('unauthenticated user is redirected to login when visiting a protected route directly', async ({ page }) => {
   const dashboardPage = new DashboardPage(page);
@@ -18,12 +19,22 @@ test('unauthenticated user is redirected to login when visiting a protected rout
 });
 
 test('sign out redirects to login and clears the session', async ({ page }) => {
+  // Deliberately logs in fresh via the UI as the dispatcher, not admin, and does not
+  // reuse a shared storageState: exTransact's sign-out calls supabase.auth.signOut()
+  // with the default 'global' scope, which revokes EVERY session for that user,
+  // including the one saved to admin.json by auth.setup.js. Signing out as admin
+  // here would silently break any other test in this run that reuses the admin
+  // storageState afterward (confirmed: it broke the "already authenticated" test
+  // below until this was switched to the dispatcher account).
   const loginPage = new LoginPage(page);
   const dashboardPage = new DashboardPage(page);
 
-  await test.step('Log in as admin', async () => {
+  await test.step('Log in as dispatcher', async () => {
     await loginPage.goto();
-    await loginPage.login(process.env.TEST_ADMIN_EMAIL, process.env.TEST_ADMIN_PASSWORD);
+    await loginPage.login(
+      process.env.TEST_DISPATCHER_ONE_EMAIL,
+      process.env.TEST_DISPATCHER_ONE_PASSWORD,
+    );
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
@@ -44,20 +55,18 @@ test('sign out redirects to login and clears the session', async ({ page }) => {
   });
 });
 
-test('authenticated user visiting /login directly is redirected to the dashboard', async ({ page }) => {
-  const loginPage = new LoginPage(page);
+test.describe('already authenticated', () => {
+  test.use({ storageState: ADMIN_STORAGE_STATE });
 
-  await test.step('Log in as admin', async () => {
-    await loginPage.goto();
-    await loginPage.login(process.env.TEST_ADMIN_EMAIL, process.env.TEST_ADMIN_PASSWORD);
-    await expect(page).toHaveURL(/\/dashboard/);
-  });
+  test('authenticated user visiting /login directly is redirected to the dashboard', async ({ page }) => {
+    const loginPage = new LoginPage(page);
 
-  await test.step('Revisit /login while still authenticated', async () => {
-    await loginPage.goto();
-  });
+    await test.step('Visit /login while already authenticated', async () => {
+      await loginPage.goto();
+    });
 
-  await test.step('Validate redirect back to the dashboard', async () => {
-    await expect(page).toHaveURL(/\/dashboard/);
+    await test.step('Validate redirect back to the dashboard', async () => {
+      await expect(page).toHaveURL(/\/dashboard/);
+    });
   });
 });

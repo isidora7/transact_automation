@@ -45,19 +45,27 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    /* Logs in as each test role once and saves the session to playwright/.auth/*.json,
+       so other projects can reuse it via `test.use({ storageState })` instead of every
+       test logging in fresh through the UI. */
+    { name: 'setup', testMatch: /.*\.setup\.js/ },
+
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      dependencies: ['setup'],
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      dependencies: ['setup'],
     },
 
     /* Test against mobile viewports. */
