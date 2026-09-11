@@ -67,14 +67,23 @@ class CreateLoadPage extends BasePage {
         return this.dialog.locator(`#create-load-stop-${field}-${index}`);
     }
 
-    async fillStop(index, { facilityName, address, city, state, zip, date, time }) {
-        await this.stopField(index, 'facility').fill(facilityName);
-        await this.stopField(index, 'address').fill(address);
-        await this.stopField(index, 'city').fill(city);
-        await this.stopField(index, 'state').fill(state);
-        await this.stopField(index, 'zip').fill(zip);
-        await this.stopField(index, 'date').fill(date);
-        await this.stopField(index, 'time').fill(time);
+    // Only fills whichever keys are provided, so validation tests can leave
+    // specific fields blank instead of always supplying a complete stop.
+    async fillStop(index, { facilityName, address, city, state, zip, date, time } = {}) {
+        if (facilityName !== undefined) await this.stopField(index, 'facility').fill(facilityName);
+        if (address !== undefined) await this.stopField(index, 'address').fill(address);
+        if (city !== undefined) await this.stopField(index, 'city').fill(city);
+        if (state !== undefined) await this.stopField(index, 'state').fill(state);
+        if (zip !== undefined) await this.stopField(index, 'zip').fill(zip);
+        if (date !== undefined) await this.stopField(index, 'date').fill(date);
+        if (time !== undefined) await this.stopField(index, 'time').fill(time);
+    }
+
+    // The Pickup/Drop toggle buttons render with lowercase accessible names
+    // ("pickup"/"drop") and repeat per stop, in stop order — .nth(index)
+    // reliably picks the button for a given stop.
+    stopTypeButton(index, type) {
+        return this.dialog.getByRole('button', { name: type, exact: true }).nth(index);
     }
 
     async goNext() {
