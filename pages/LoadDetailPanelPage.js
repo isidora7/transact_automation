@@ -24,5 +24,36 @@ class LoadDetailPanelPage extends BasePage {
         await this.approveRateInput.fill(String(rate));
         await this.confirmApproveButton.click();
     }
+
+    // The BOL/POD status pill in the header (aria-label "BOL — Pending
+    // review" etc.) doubles as the button that opens the preview dialog —
+    // match only the "<TYPE> —" prefix so it works regardless of status text.
+    docBadge(type) {
+        return this.panel.getByRole('button', { name: new RegExp(`^${type.toUpperCase()} —`) });
+    }
+
+    async openDocPreview(type) {
+        await this.docBadge(type).click();
+    }
+
+    // Same underlying [data-slot="dialog-content"] selector as approveDialog —
+    // only one dialog is ever open at a time, so this just names the same
+    // element for whichever moment in the flow it's used at.
+    get docPreviewDialog() {
+        return this.$('[data-slot="dialog-content"]');
+    }
+
+    get docPreviewApproveButton() {
+        return this.docPreviewDialog.getByRole('button', { name: 'Approve', exact: true });
+    }
+
+    get docPreviewRejectButton() {
+        return this.docPreviewDialog.getByRole('button', { name: 'Reject', exact: true });
+    }
+
+    async approveDoc(type) {
+        await this.openDocPreview(type);
+        await this.docPreviewApproveButton.click();
+    }
 }
 module.exports = { LoadDetailPanelPage };
