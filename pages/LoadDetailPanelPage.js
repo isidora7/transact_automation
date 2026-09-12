@@ -55,5 +55,22 @@ class LoadDetailPanelPage extends BasePage {
         await this.openDocPreview(type);
         await this.docPreviewApproveButton.click();
     }
+
+    // Decline confirmation is a base-ui AlertDialog, not the plain Dialog
+    // primitive the other confirmations use — it renders a distinct
+    // data-slot ("alert-dialog-content"), which is what lets its own
+    // "Decline" button be scoped separately from the row-level one.
+    get declineDialog() {
+        return this.$('[data-slot="alert-dialog-content"]');
+    }
+
+    get confirmDeclineButton() {
+        return this.declineDialog.getByRole('button', { name: 'Decline', exact: true });
+    }
+
+    async declineCost() {
+        await this.declineButton.click();
+        await this.confirmDeclineButton.click();
+    }
 }
 module.exports = { LoadDetailPanelPage };
