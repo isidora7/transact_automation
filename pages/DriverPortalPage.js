@@ -66,5 +66,19 @@ class DriverPortalPage extends BasePage {
     addCostSubmitButton(facilityName) {
         return this.addCostDialog.getByRole('button', { name: `Submit cost for ${facilityName}` });
     }
+
+    // Hidden (sr-only) file input — Playwright's setInputFiles works on it
+    // directly without needing to click the visible trigger button first.
+    docUploadInput(type) {
+        return this.$(`#doc-upload-${type}`);
+    }
+
+    async uploadDoc(type, file) {
+        await this.docUploadInput(type).setInputFiles(file);
+    }
+
+    get docToast() {
+        return this.page.getByText(/uploaded successfully$/);
+    }
 }
 module.exports = { DriverPortalPage };
