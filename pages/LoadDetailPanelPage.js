@@ -72,5 +72,43 @@ class LoadDetailPanelPage extends BasePage {
         await this.declineButton.click();
         await this.confirmDeclineButton.click();
     }
+
+    // Footer lifecycle actions. Both dialogs are portaled outside the aside
+    // (like every other dialog in this panel), so their own confirm buttons
+    // never collide with these footer buttons even without extra scoping —
+    // scoped to the dialog anyway for consistency with the rest of the page.
+    get cancelLoadButton() {
+        return this.panel.getByRole('button', { name: 'Cancel', exact: true });
+    }
+
+    get completeLoadButton() {
+        return this.panel.getByRole('button', { name: 'Complete', exact: true });
+    }
+
+    get cancelDialog() {
+        return this.$('[data-slot="alert-dialog-content"]');
+    }
+
+    get confirmCancelButton() {
+        return this.cancelDialog.getByRole('button', { name: 'Cancel Load', exact: true });
+    }
+
+    get completeDialog() {
+        return this.$('[data-slot="alert-dialog-content"]');
+    }
+
+    get confirmCompleteButton() {
+        return this.completeDialog.getByRole('button', { name: 'Complete', exact: true });
+    }
+
+    async cancelLoad() {
+        await this.cancelLoadButton.click();
+        await this.confirmCancelButton.click();
+    }
+
+    async completeLoad() {
+        await this.completeLoadButton.click();
+        await this.confirmCompleteButton.click();
+    }
 }
 module.exports = { LoadDetailPanelPage };
