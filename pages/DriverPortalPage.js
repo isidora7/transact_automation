@@ -67,6 +67,17 @@ class DriverPortalPage extends BasePage {
         return this.addCostDialog.getByRole('button', { name: `Submit cost for ${facilityName}` });
     }
 
+    // ProofNoteStep's file input has no stable id (React useId()), so it's
+    // targeted by type within the dialog instead — only one file input is
+    // ever present on this step.
+    get addCostProofInput() {
+        return this.addCostDialog.locator('input[type="file"]');
+    }
+
+    async addProofFiles(files) {
+        await this.addCostProofInput.setInputFiles(files);
+    }
+
     // Hidden (sr-only) file input — Playwright's setInputFiles works on it
     // directly without needing to click the visible trigger button first.
     docUploadInput(type) {
@@ -79,6 +90,12 @@ class DriverPortalPage extends BasePage {
 
     get docToast() {
         return this.page.getByText(/uploaded successfully$/);
+    }
+
+    // Shown on a rejected doc card ("Dispatch note: <note>") — page-level
+    // since BOL/POD cards aren't scoped under a stop <article>.
+    get docRejectionNote() {
+        return this.page.getByText(/^Dispatch note:/);
     }
 }
 module.exports = { DriverPortalPage };
