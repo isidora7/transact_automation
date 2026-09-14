@@ -97,5 +97,36 @@ class DriverPortalPage extends BasePage {
     get docRejectionNote() {
         return this.page.getByText(/^Dispatch note:/);
     }
+
+    // Dispatcher "needs action" / rejection banners at the top of the
+    // portal ("Dispatch needs proof for Lumper", "Dispatch requested BOL
+    // upload", etc.). The button's accessible name concatenates its title
+    // and message paragraphs, so a leading-anchor regex on the title text
+    // is enough to match regardless of the (dynamic) message beneath it.
+    feedbackItem(titleText) {
+        return this.page.getByRole('button', { name: new RegExp(`^${titleText}`) });
+    }
+
+    // Clicking a cost-proof-request feedback item expands that cost's
+    // inline editor directly (DriverPortal's focusCost sets expandedCostId)
+    // — no separate row click needed. Only one editor is ever expanded at
+    // a time in these tests, so scoping to the single `[id^="cost-editor-"]`
+    // region is enough without tracking the cost's id.
+    get costEditorPanel() {
+        return this.$('[id^="cost-editor-"]');
+    }
+
+    get editProofInput() {
+        return this.costEditorPanel.locator('input[type="file"]');
+    }
+
+    get saveCostChangesButton() {
+        return this.costEditorPanel.getByRole('button', { name: /^Save changes$/ });
+    }
+
+    async addProofToExpandedCost(files) {
+        await this.editProofInput.setInputFiles(files);
+        await this.saveCostChangesButton.click();
+    }
 }
 module.exports = { DriverPortalPage };

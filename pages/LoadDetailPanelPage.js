@@ -144,6 +144,77 @@ class LoadDetailPanelPage extends BasePage {
         await this.confirmRejectProofButton.click();
     }
 
+    // "Request proof" lives inside a per-cost overflow menu (aria-label
+    // "Additional cost actions") rather than being directly visible — only
+    // rendered at all while the cost is still pending_approval and hasn't
+    // already been requested. The menu itself portals to the page, not the
+    // panel, so its item is looked up page-wide.
+    get costActionsMenuButton() {
+        return this.panel.getByRole('button', { name: 'Additional cost actions' });
+    }
+
+    get requestProofMenuItem() {
+        return this.page.getByRole('menuitem', { name: 'Request proof', exact: true });
+    }
+
+    get requestProofDialog() {
+        return this.$('[data-slot="dialog-content"]');
+    }
+
+    get requestProofNoteInput() {
+        return this.requestProofDialog.getByLabel('Note for driver (optional)');
+    }
+
+    get sendProofRequestButton() {
+        return this.requestProofDialog.getByRole('button', { name: 'Send request', exact: true });
+    }
+
+    async requestProof(note) {
+        await this.costActionsMenuButton.click();
+        await this.requestProofMenuItem.click();
+        if (note) {
+            await this.requestProofNoteInput.fill(note);
+        }
+        await this.sendProofRequestButton.click();
+    }
+
+    // "Request BOL/POD" lives in the panel-header "Driver link actions"
+    // overflow menu, separate from the per-cost one above. Its item text
+    // flips to "<TYPE> request sent" (and becomes disabled) once already
+    // requested, per LoadDetailPanel.tsx's isRequested check.
+    get driverLinkActionsButton() {
+        return this.panel.getByRole('button', { name: 'Driver link actions' });
+    }
+
+    requestDocMenuItem(type) {
+        return this.page.getByRole('menuitem', { name: `Request ${type.toUpperCase()}`, exact: true });
+    }
+
+    docRequestSentMenuItem(type) {
+        return this.page.getByRole('menuitem', { name: `${type.toUpperCase()} request sent`, exact: true });
+    }
+
+    get requestDocDialog() {
+        return this.$('[data-slot="dialog-content"]');
+    }
+
+    get requestDocNoteInput() {
+        return this.requestDocDialog.getByLabel('Note (optional)');
+    }
+
+    get sendDocRequestButton() {
+        return this.requestDocDialog.getByRole('button', { name: 'Send request', exact: true });
+    }
+
+    async requestDoc(type, note) {
+        await this.driverLinkActionsButton.click();
+        await this.requestDocMenuItem(type).click();
+        if (note) {
+            await this.requestDocNoteInput.fill(note);
+        }
+        await this.sendDocRequestButton.click();
+    }
+
     // Footer lifecycle actions. Both dialogs are portaled outside the aside
     // (like every other dialog in this panel), so their own confirm buttons
     // never collide with these footer buttons even without extra scoping —
