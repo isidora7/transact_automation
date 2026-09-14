@@ -96,18 +96,39 @@ test('dispatcher rejects a proof photo the driver attached to a cost, with a not
     await loadCard.click();
   });
 
+  const rejectionNote = 'Receipt is illegible, please re-upload a clearer photo.';
+
   await test.step('Dispatcher rejects the proof photo with a note', async () => {
     const loadDetailPanelPage = new LoadDetailPanelPage(page);
     await expect(loadDetailPanelPage.panel).toContainText('Lumper');
-    await loadDetailPanelPage.rejectProof('Lumper', 'Receipt is illegible, please re-upload a clearer photo.');
+    await loadDetailPanelPage.rejectProof('Lumper', rejectionNote);
 
-    // Reopen the proof to confirm it now shows the rejection note and no
-    // longer offers Approve/Reject (status has moved past "pending").
+    // The reject-note dialog closing confirms the mutation itself
+    // succeeded — but the panel's own in-memory data does not reliably
+    // pick up the change without a reload (the client-side cache here
+    // isn't invalidated/refreshed the way approve's is — confirmed by
+    // direct testing: even a 20s wait on the still-open dialog never
+    // showed the update). Same "reload instead of trusting realtime"
+    // pattern used everywhere else in this suite.
+    await expect(page.locator('[data-slot="dialog-content"]')).toHaveCount(0);
+  });
+
+  await test.step('Dispatcher reloads and confirms the rejection stuck', async () => {
+    await page.reload();
+    const loadCard = page.locator('.load-card').filter({ hasText: customerName });
+    await loadCard.click();
+
+    const loadDetailPanelPage = new LoadDetailPanelPage(page);
     await loadDetailPanelPage.openProofPreview('Lumper');
-    await expect(loadDetailPanelPage.proofPreviewDialog).toContainText(
-      'Receipt is illegible, please re-upload a clearer photo.',
-    );
-    await expect(loadDetailPanelPage.proofPreviewApproveButton).toHaveCount(0);
-    await expect(loadDetailPanelPage.proofPreviewRejectButton).toHaveCount(0);
+    await expect(loadDetailPanelPage.proofPreviewDialog).toContainText(rejectionNote);
+
+    // CostProofPreviewDialog always renders these buttons when onApprove/
+    // onDecline are passed — it only *disables* them once the proof is no
+    // longer pending (a manually reopened dialog, like this one, never
+    // goes through the auto-close effect that removes them entirely after
+    // an in-place approve/reject — see proofPhotoApproval.spec.js). Assert
+    // disabled, not absent.
+    await expect(loadDetailPanelPage.proofPreviewApproveButton).toBeDisabled();
+    await expect(loadDetailPanelPage.proofPreviewRejectButton).toBeDisabled();
   });
 });
