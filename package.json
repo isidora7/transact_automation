@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test:login": "npx playwright test ./tests/login/smokeLogin.spec.js",
+    "cleanup:test-loads": "node scripts/cleanupTestLoads.js",
     "allure:generate": "npx allure generate allure-results -o allure-report --clean",
     "allure:open": "npx allure open allure-report",
     "allure:report": "npm run allure:generate && npm run allure:open"
