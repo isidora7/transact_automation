@@ -56,6 +56,26 @@ class LoadDetailPanelPage extends BasePage {
         await this.docPreviewApproveButton.click();
     }
 
+    // Unlike the proof-reject flow, clicking Reject here does NOT close the
+    // preview dialog first — it stacks a second Dialog on top, so both
+    // preview and reject-note dialogs are open (and both render
+    // [data-slot="dialog-content"]) at once. .last() picks the one that
+    // mounted second (the reject-note dialog, on top).
+    get docRejectNoteInput() {
+        return this.$('[data-slot="dialog-content"]').last().getByLabel('Rejection note');
+    }
+
+    get confirmRejectDocButton() {
+        return this.$('[data-slot="dialog-content"]').last().getByRole('button', { name: 'Reject document', exact: true });
+    }
+
+    async rejectDoc(type, note) {
+        await this.openDocPreview(type);
+        await this.docPreviewRejectButton.click();
+        await this.docRejectNoteInput.fill(note);
+        await this.confirmRejectDocButton.click();
+    }
+
     // Decline confirmation is a base-ui AlertDialog, not the plain Dialog
     // primitive the other confirmations use — it renders a distinct
     // data-slot ("alert-dialog-content"), which is what lets its own
@@ -71,6 +91,57 @@ class LoadDetailPanelPage extends BasePage {
     async declineCost() {
         await this.declineButton.click();
         await this.confirmDeclineButton.click();
+    }
+
+    // Cost-level proof photos. The thumbnail's aria-label is unique per
+    // proof/cost combo ("Open proof <n> for <costLabel>"), so no extra
+    // scoping is needed to find it. Its preview dialog reuses the same
+    // [data-slot="dialog-content"] selector as every other dialog in this
+    // panel (only one is ever open at a time) — the "Approve proof" label
+    // here doesn't collide with the cost-level "Approve" button, so unlike
+    // approveButton/declineButton it needs no extra disambiguation.
+    proofThumbnail(costLabel, index = 1) {
+        return this.panel.getByRole('button', { name: `Open proof ${index} for ${costLabel}` });
+    }
+
+    get proofPreviewDialog() {
+        return this.$('[data-slot="dialog-content"]');
+    }
+
+    get proofPreviewApproveButton() {
+        return this.proofPreviewDialog.getByRole('button', { name: 'Approve proof', exact: true });
+    }
+
+    get proofPreviewRejectButton() {
+        return this.proofPreviewDialog.getByRole('button', { name: 'Reject', exact: true });
+    }
+
+    async openProofPreview(costLabel, index = 1) {
+        await this.proofThumbnail(costLabel, index).click();
+    }
+
+    async approveProof(costLabel) {
+        await this.openProofPreview(costLabel);
+        await this.proofPreviewApproveButton.click();
+    }
+
+    // Clicking Reject in the preview closes it and opens a separate
+    // "Reject proof" dialog requiring a note before it'll submit — same
+    // [data-slot="dialog-content"] reuse pattern (preview is already closed
+    // by the time this one opens).
+    get rejectProofNoteInput() {
+        return this.$('[data-slot="dialog-content"]').getByLabel('Rejection note');
+    }
+
+    get confirmRejectProofButton() {
+        return this.$('[data-slot="dialog-content"]').getByRole('button', { name: 'Reject proof', exact: true });
+    }
+
+    async rejectProof(costLabel, note) {
+        await this.openProofPreview(costLabel);
+        await this.proofPreviewRejectButton.click();
+        await this.rejectProofNoteInput.fill(note);
+        await this.confirmRejectProofButton.click();
     }
 
     // Footer lifecycle actions. Both dialogs are portaled outside the aside
